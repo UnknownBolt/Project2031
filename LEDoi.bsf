@@ -55,23 +55,16 @@ https://fpgasoftware.intel.com/eula.
 	(port
 		(pt 248 32)
 		(output)
-		(text "CSL" (rect 0 0 18 12)(font "Arial" ))
-		(text "CSL" (rect 209 27 227 39)(font "Arial" ))
-		(line (pt 248 32)(pt 232 32)(line_width 1))
+		(text "LED_Write[9..0]" (rect 0 0 68 12)(font "Arial" ))
+		(text "LED_Write[9..0]" (rect 159 27 227 39)(font "Arial" ))
+		(line (pt 248 32)(pt 232 32)(line_width 3))
 	)
 	(port
 		(pt 248 48)
 		(output)
-		(text "LED_Write[9..0]" (rect 0 0 68 12)(font "Arial" ))
-		(text "LED_Write[9..0]" (rect 159 43 227 55)(font "Arial" ))
-		(line (pt 248 48)(pt 232 48)(line_width 3))
-	)
-	(port
-		(pt 248 64)
-		(output)
 		(text "LED_DATA[5..0]" (rect 0 0 75 12)(font "Arial" ))
-		(text "LED_DATA[5..0]" (rect 152 59 227 71)(font "Arial" ))
-		(line (pt 248 64)(pt 232 64)(line_width 3))
+		(text "LED_DATA[5..0]" (rect 152 43 227 55)(font "Arial" ))
+		(line (pt 248 48)(pt 232 48)(line_width 3))
 	)
 	(drawing
 		(rectangle (rect 16 16 232 96)(line_width 1))

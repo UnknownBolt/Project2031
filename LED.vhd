@@ -17,8 +17,9 @@ PORT(
     WRITE_EN    : IN  STD_LOGIC;
     RESETN      : IN  STD_LOGIC;
     clock_10kHz  : IN  STD_LOGIC;
-    LEDZ        : OUT  STD_LOGIC;-- Only LED(0) is used
+    LEDs        : OUT  STD_LOGIC;-- Only LED(0) is used
     LED_DATA     : IN  STD_LOGIC_VECTOR(5 DOWNTO 0)
+	 
 );
 END LED;
 
@@ -33,7 +34,7 @@ ARCHITECTURE a OF LED IS
     SIGNAL led0_enable : STD_LOGIC := '0';
     
 BEGIN
-    -- PWM counter process
+    -- PWM counter process 
     PROCESS (clock_10kHz, RESETN)
     BEGIN
         IF (RESETN = '0') THEN
@@ -48,9 +49,9 @@ BEGIN
     BEGIN
         -- Only control LED 0 (others permanently off)
         IF (led0_enable = '1' AND pwm_counter < brightness) THEN
-            LEDZ <= '1';
+            LEDs <= '1';
         ELSE
-            LEDZ <= '0';
+            LEDs <= '0';
         END IF;
         
     END PROCESS;

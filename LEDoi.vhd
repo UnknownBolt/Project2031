@@ -14,7 +14,6 @@ USE LPM.LPM_COMPONENTS.ALL;
 ENTITY LEDoi IS
 PORT(
     CS          : IN  STD_LOGIC;
-	 CSL			 : OUT STD_LOGIC;
     WRITE_EN    : IN  STD_LOGIC;
     RESETN      : IN  STD_LOGIC;
 	 LED_Write   : OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
@@ -23,19 +22,15 @@ PORT(
 );
 END LEDoi;
 
-
-
 ARCHITECTURE a OF LEDoi IS
     
-    -- Brightness value (shared by all LEDs)
-    SIGNAL brightness : STD_LOGIC_VECTOR(5 DOWNTO 0) := (OTHERS => '0');
     
     -- LED enable registers
     SIGNAL led_enable : STD_LOGIC_VECTOR(9 DOWNTO 0) := (OTHERS => '0');
         
 BEGIN
-    
-   -- PWM output generation
+   
+   -- Reading the bit mask the controling the corresponding LEDs
     PROCESS  (led_enable)
     BEGIN
         FOR i IN 0 TO 9 LOOP
@@ -48,12 +43,16 @@ BEGIN
         END LOOP;
     END PROCESS;
     
-    -- Control and brightness update process
+ 
     PROCESS (RESETN, CS)
     BEGIN
+	 -- reset logic 
         IF (RESETN = '0') THEN
-            --led_enable <= (OTHERS => '0');
-            brightness <= (OTHERS => '0');
+        
+					led_enable <= (OTHERS => '0');
+                
+                LED_DATA <= (OTHERS => '0');
+				
             
         ELSIF (RISING_EDGE(CS)) THEN
             IF WRITE_EN = '1' THEN
@@ -66,3 +65,4 @@ BEGIN
         END IF;
     END PROCESS;
 END a;
+

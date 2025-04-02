@@ -1,0 +1,74 @@
+WIDTH=16;
+DEPTH=2048;
+
+ADDRESS_RADIX=HEX;
+DATA_RADIX=HEX;
+
+CONTENT BEGIN
+0000: 0834; -- 	Load  Bit0
+0001: 9820; --     OUT    LEDs
+0002: 802B; -- 	CALL   Delay
+0003: 0835; -- 	Load  Bit1
+0004: 9820; -- 	OUT    LEDs
+0005: 802B; -- 	CALL   Delay
+0006: 0836; -- 	Load  Bit2
+0007: 9820; --     OUT    LEDs
+0008: 802B; -- 	CALL   Delay
+0009: 0837; -- 	Load  Bit3
+000A: 9820; -- 	OUT    LEDs
+000B: 802B; --     CALL   Delay
+000C: 0838; -- 	Load  Bit4
+000D: 9820; --     OUT    LEDs
+000E: 802B; -- 	CALL   Delay
+000F: 0839; -- 	Load  Bit5
+0010: 9820; -- 	OUT    LEDs
+0011: 802B; --     CALL   Delay
+0012: 083A; -- 	Load  Bit6
+0013: 9820; -- 	OUT    LEDs
+0014: 802B; --     CALL   Delay
+0015: 083B; -- 	Load  Bit7
+0016: 9820; -- 	OUT    LEDs
+0017: 802B; --     CALL   Delay
+0018: 083C; -- 	Load  Bit8
+0019: 9820; -- 	OUT    LEDs
+001A: 802B; --     CALL   Delay
+001B: 083D; -- 	Load  Bit9
+001C: 9820; -- 	OUT    LEDs
+001D: 802B; --     CALL   Delay
+001E: 083E; -- 	Load  Edit
+001F: 9820; -- 	OUT    LEDs
+0020: 802B; --     CALL   Delay
+0021: 083F; -- 	Load  Edit1
+0022: 9820; -- 	OUT    LEDs
+0023: 802B; --     CALL   Delay
+0024: 0840; -- 	Load  Edit2
+0025: 9820; -- 	OUT    LEDs
+0026: 802B; --     CALL   Delay
+0027: 083D; -- 	Load  Bit9
+0028: 9820; -- 	OUT    LEDs
+0029: 802B; --     CALL   Delay
+002A: 2824; --     JUMP   Flashing
+002B: 9802; --     OUT    Timer
+002C: 9002; --     IN     Timer
+002D: 6FEC; --     ADDI   -20
+002E: 302C; --     JNEG   WaitingLoop
+002F: 8800; --     RETURN
+0030: 0000; -- Pattern:   DW 0
+0031: 0000; -- TempPattern: DW 0
+0032: 0000; -- Zero: DW 0
+0033: 0000; -- Count:      DW 0
+0034: 8001; -- Bit0:      DW &B1000000000000001
+0035: 4002; -- Bit1:      DW &B0100000000000010
+0036: 2004; -- Bit2:      DW &B0010000000000100
+0037: 1008; -- Bit3:      DW &B0001000000001000
+0038: 0810; -- Bit4:      DW &B0000100000010000
+0039: 0420; -- Bit5:      DW &B0000010000100000
+003A: 0C40; -- Bit6:      DW &B0000110001000000
+003B: 1C80; -- Bit7:      DW &B0001110010000000
+003C: 7900; -- Bit8:      DW &B0111100100000000
+003D: FA01; -- Bit9:      DW &B1111101000000001
+003E: 0006; -- Edit:	   DW &B0000000000000110
+003F: F8C0; -- Edit1:	   DW &B1111100011000000
+0040: 0201; -- Edit2:	   DW &B0000001000000001
+[0041..07FF] : 0000; -- [empty memory]
+END;
