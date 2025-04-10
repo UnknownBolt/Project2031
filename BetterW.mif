@@ -1,0 +1,25 @@
+WIDTH=16;
+DEPTH=2048;
+
+ADDRESS_RADIX=HEX;
+DATA_RADIX=HEX;
+
+CONTENT BEGIN
+0000: 9000; --     IN     Switches      ; Read initial switch state
+0001: 100A; --     STORE  Pattern      ; Store the pattern
+0002: 080A; -- 	LOAD   Pattern
+0003: 9820; --     OUT    LEDs
+0004: 2800; --     JUMP   CheckSwitches
+0005: 9802; --     OUT    Timer
+0006: 9002; --     IN     Timer
+0007: 6FFB; --     ADDI   -5
+0008: 3006; --     JNEG   WaitingLoop
+0009: 8800; --     RETURN
+000A: 0000; -- Pattern:   DW 0
+000B: 0000; -- TempPattern: DW 0
+000C: 0000; -- Zero: DW 0
+000D: 0000; -- Count:      DW 0
+000E: 0001; -- Bit0:      DW &B0000000001
+000F: 0200; -- Bit9:      DW &B1000000000
+[0010..07FF] : 0000; -- [empty memory]
+END;

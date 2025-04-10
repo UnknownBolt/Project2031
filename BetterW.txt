@@ -1,0 +1,39 @@
+ORG 0
+
+    ; Get and store the switch values
+CheckSwitches:
+    IN     Switches      ; Read initial switch state
+    STORE  Pattern      ; Store the pattern
+	LOAD   Pattern
+    OUT    LEDs
+    JUMP   CheckSwitches
+    
+
+
+
+; To make things happen on a human timescale, the timer is
+; used to delay for half a second.
+Delay:
+    OUT    Timer
+WaitingLoop:
+    IN     Timer
+    ADDI   -5
+    JNEG   WaitingLoop
+    RETURN
+
+; Variables
+Pattern:   DW 0
+TempPattern: DW 0
+Zero: DW 0
+Count:      DW 0
+
+; Useful values
+Bit0:      DW &B0000000001
+Bit9:      DW &B1000000000
+
+; IO address constants
+Switches:  EQU 000
+LEDs:      EQU 032
+Timer:     EQU 002
+Hex0:      EQU 004
+Hex1:      EQU 005

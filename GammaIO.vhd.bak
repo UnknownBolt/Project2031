@@ -1,0 +1,93 @@
+-- LEDController.VHD
+-- Modified for brightness control using PWM
+--
+-- This SCOMP peripheral drives ten outputs with adjustable brightness
+-- based on values from SCOMP. Each LED has 8-bit brightness control.
+
+LIBRARY IEEE;
+LIBRARY LPM;
+
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_ARITH.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+USE LPM.LPM_COMPONENTS.ALL;
+
+ENTITY LEDController IS
+PORT(
+    CS          : IN  STD_LOGIC;
+    WRITE_EN    : IN  STD_LOGIC;
+    RESETN      : IN  STD_LOGIC;
+    CLOCK       : IN  STD_LOGIC;  -- Added clock input for PWM
+    LEDs        : OUT STD_LOGIC_VECTOR(9 DOWNTO 0);
+    IO_DATA     : IN  STD_LOGIC_VECTOR(15 DOWNTO 0)
+    );
+END LEDController;
+
+ARCHITECTURE a OF LEDController IS
+    -- PWM counter (8-bit for 256 brightness levels)
+    SIGNAL pwm_counter : STD_LOGIC_VECTOR(7 DOWNTO 0) := (OTHERS => '0');
+    
+    -- Brightness registers for each LED (8 bits each)
+    TYPE brightness_array IS ARRAY (0 TO 9) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
+    SIGNAL brightness_regs : brightness_array := (OTHERS => (OTHERS => '0'));
+    
+    -- Register to hold which LEDs are being updated
+    SIGNAL led_select : STD_LOGIC_VECTOR(9 DOWNTO 0) := (OTHERS => '0');
+    
+    -- State for brightness update
+    TYPE state_type IS (IDLE, UPDATE_BRIGHTNESS);
+    SIGNAL state : state_type := IDLE;
+    
+BEGIN
+    -- PWM counter process
+    PROCESS (CLOCK, RESETN)
+    BEGIN
+        IF (RESETN = '0') THEN
+            pwm_counter <= (OTHERS => '0');
+        ELSIF (RISING_EDGE(CLOCK)) THEN
+            pwm_counter <= pwm_counter + 1;
+        END IF;
+    END PROCESS;
+    
+    -- PWM output generation
+    PROCESS (pwm_counter, brightness_regs)
+    BEGIN
+        FOR i IN 0 TO 9 LOOP
+            IF (pwm_counter < brightness_regs(i)) THEN
+                LEDs(i) <= '1';
+            ELSE
+                LEDs(i) <= '0';
+            END IF;
+        END LOOP;
+    END PROCESS;
+    
+    -- Brightness control update process
+    PROCESS (RESETN, CS)
+    BEGIN
+        IF (RESETN = '0') THEN
+            -- Reset all brightness levels to 0 (LEDs off)
+            FOR i IN 0 TO 9 LOOP
+                brightness_regs(i) <= (OTHERS => '0');
+            END LOOP;
+            led_select <= (OTHERS => '0');
+            state <= IDLE;
+            
+        ELSIF (RISING_EDGE(CS)) THEN
+            IF WRITE_EN = '1' THEN
+                -- First word: Bitmask indicating which LEDs to update (bits 9:0)
+                -- Second word: Brightness value (bits 7:0) for selected LEDs
+                IF state = IDLE THEN
+                    led_select <= IO_DATA(9 DOWNTO 0);
+                    state <= UPDATE_BRIGHTNESS;
+                ELSE
+                    FOR i IN 0 TO 9 LOOP
+                        IF led_select(i) = '1' THEN
+                            brightness_regs(i) <= IO_DATA(7 DOWNTO 0);
+                        END IF;
+                    END LOOP;
+                    state <= IDLE;
+                END IF;
+            END IF;
+        END IF;
+    END PROCESS;
+END a;

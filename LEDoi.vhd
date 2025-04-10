@@ -22,8 +22,7 @@ PORT(
     clock_1Hz   : IN  STD_LOGIC;
 	 clock_10Hz   : IN  STD_LOGIC;
     CS1         : OUT STD_LOGIC;
-    LED_DATA    : OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-	 LEDs       : OUT STD_LOGIC_VECTOR(9 DOWNTO 0)
+    LED_DATA    : OUT STD_LOGIC_VECTOR(5 DOWNTO 0)
 );
 END LEDoi;
 
@@ -31,6 +30,7 @@ ARCHITECTURE a OF LEDoi IS
     
     -- LED enable registers
     SIGNAL led_enable : STD_LOGIC_VECTOR(9 DOWNTO 0) := (OTHERS => '0');
+	 SIGNAL led_enable1 : STD_LOGIC_VECTOR(9 DOWNTO 0) := (OTHERS => '0');
 	 SIGNAL led_enable2 : STD_LOGIC_VECTOR(9 DOWNTO 0) := (OTHERS => '0');
     
     -- Brightness registers for each LED (6 bits each to match LED_DATA)
@@ -69,8 +69,17 @@ BEGIN
     -- Output assignments
     CS1 <= cs1_reg;  -- Registered output synchronized with 1Hz clock
     LED_DATA <= timer_led_data WHEN timer_mode_active = '1' ELSE led_data_reg;
+	 led_enable <= led_enable2 WHEN timer_mode_active = '1' ELSE led_enable1;
 	 
 	     -- CS1 and CS2 synchronization process
+		  
+	 PROCESS(led_enable)
+    BEGIN
+        FOR i IN 0 TO 9 LOOP
+            LED_Write(i) <= led_enable(i);
+        END LOOP;
+    END PROCESS;
+	  
     PROCESS(clock_10Hz, RESETN)
     BEGIN
         IF RESETN = '0' THEN
@@ -91,15 +100,15 @@ BEGIN
     END PROCESS;
     
     
-    PROCESS(clock_1Hz, RESETN)
+    PROCESS(CS2, RESETN)
     BEGIN
         IF RESETN = '0' THEN
             cs2_sync <= '0';
             cs2_prev <= '0';
             cs2_pulse <= '0';
-        ELSIF RISING_EDGE(clock_1Hz) THEN
+        ELSIF RISING_EDGE(CS2) THEN
             -- CS2 synchronization
-            cs2_sync <= CS2;
+            cs2_sync <= '1';
             cs2_prev <= cs2_sync;
             cs2_pulse <= cs2_sync AND NOT cs2_prev;
         END IF;
@@ -109,12 +118,12 @@ BEGIN
     PROCESS(RESETN, CS)
     BEGIN
         IF RESETN = '0' THEN
-            led_enable <= (OTHERS => '0');
+            led_enable1 <= (OTHERS => '0');
             led_data_reg <= (OTHERS => '0');
         ELSIF RISING_EDGE(CS) THEN
             IF WRITE_EN = '1' THEN
                 -- Bits 9:0 control which LEDs are enabled
-                led_enable <= IO_DATA(9 DOWNTO 0);
+                led_enable1 <= IO_DATA(9 DOWNTO 0);
                 
                 -- Bits 15:10 set brightness for all LEDs
                 led_data_reg <= IO_DATA(15 DOWNTO 10);
@@ -136,10 +145,11 @@ BEGIN
         ELSIF RISING_EDGE(clock_1Hz) THEN
 				
             -- Detect CS2 pulse to start timer mode
-            IF cs2_pulse = '1' THEN
+            IF cs2_sync = '1' THEN
                 timer_mode_active <= '1';
                 current_led <= 0;
                 state <= TIMER_MODE;
+					 
             END IF;
             
             -- Timer mode operation
@@ -165,6 +175,4 @@ BEGIN
             END IF;
         END IF;
     END PROCESS;
-	 LED_Write <= led_enable2 WHEN timer_mode_active = '1' ELSE led_enable;
-	 LEDs <= LED_Write;
 END a;
