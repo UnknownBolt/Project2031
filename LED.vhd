@@ -1,6 +1,6 @@
 -- SingleLEDController.VHD
 -- Controls ONLY the first LED (LED 0) when bit 0 is active
--- Uses bits 15:10 for brightness control (6-bit, 64 levels)
+-- Uses bits 5:0 for brightness control (6-bit, 64 levels)
 -- All other LEDs remain permanently off
 
 LIBRARY IEEE;
@@ -14,12 +14,12 @@ USE LPM.LPM_COMPONENTS.ALL;
 ENTITY LED IS
 PORT(
     CS          : IN  STD_LOGIC;
+    CS1         : IN  STD_LOGIC;
     WRITE_EN    : IN  STD_LOGIC;
     RESETN      : IN  STD_LOGIC;
-    clock_10kHz  : IN  STD_LOGIC;
-    LEDs        : OUT  STD_LOGIC;-- Only LED(0) is used
-    LED_DATA     : IN  STD_LOGIC_VECTOR(5 DOWNTO 0)
-	 
+    clock_10kHz : IN  STD_LOGIC;
+    LEDs        : OUT STD_LOGIC; -- Only LED(0) is used
+    LED_DATA    : IN  STD_LOGIC_VECTOR(5 DOWNTO 0)
 );
 END LED;
 
@@ -33,7 +33,13 @@ ARCHITECTURE a OF LED IS
     -- LED enable flag (only for LED 0)
     SIGNAL led0_enable : STD_LOGIC := '0';
     
+    -- Combined chip select
+    SIGNAL combined_cs : STD_LOGIC;
+    
 BEGIN
+    -- Combine CS signals
+    combined_cs <= CS OR CS1;
+    
     -- PWM counter process 
     PROCESS (clock_10kHz, RESETN)
     BEGIN
@@ -53,25 +59,25 @@ BEGIN
         ELSE
             LEDs <= '0';
         END IF;
-        
     END PROCESS;
     
     -- Control and brightness update process
-    PROCESS (RESETN, CS)
+    -- Now uses the main clock_10kHz for synchronization
+    PROCESS (clock_10kHz, RESETN)
     BEGIN
         IF (RESETN = '0') THEN
             led0_enable <= '0';
             brightness <= (OTHERS => '0');
-            
-        ELSIF (RISING_EDGE(CS)) THEN
-            IF WRITE_EN = '1' THEN
-                  led0_enable <= '1';
-                  brightness <= LED_DATA(5 DOWNTO 0);
-             ELSIF (WRITE_EN = '0' AND led0_enable <= '1') THEN
-                  led0_enable <= '1';
-				 Else
-					led0_enable <= '0';
-                END IF;
+        ELSIF (RISING_EDGE(clock_10kHz)) THEN
+            IF (combined_cs = '1' AND WRITE_EN = '1') THEN
+                led0_enable <= '1';
+                brightness <= LED_DATA(5 DOWNTO 0);
+            ELSIF (combined_cs = '1' AND WRITE_EN = '0') THEN
+                led0_enable <= led0_enable; -- Maintain current state
+            ELSE
+                led0_enable <= '0';
             END IF;
+        END IF;
     END PROCESS;
+
 END a;
