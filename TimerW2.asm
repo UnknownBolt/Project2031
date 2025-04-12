@@ -2,7 +2,7 @@ ORG 0
 
     ; Get and store the switch values
 CheckSwitches:
-	Load  Bit0
+	Loadi  1
     OUT    TIMERL
 	CALL   Delay
 Wait:
@@ -32,7 +32,7 @@ Delay:
     OUT    Timer
 WaitingLoop:
     IN     Timer
-    ADDI   -55
+    ADDI   -100
     JNEG   WaitingLoop
     RETURN
 

@@ -5,7 +5,7 @@ ADDRESS_RADIX=HEX;
 DATA_RADIX=HEX;
 
 CONTENT BEGIN
-0000: 0817; -- 	Load  Bit0
+0000: B801; -- 	Loadi  1
 0001: 9821; --     OUT    TIMERL
 0002: 800E; -- 	CALL   Delay
 0003: 800E; -- 	CALL   Delay
@@ -21,7 +21,7 @@ CONTENT BEGIN
 000D: 2807; --     JUMP   Flashing
 000E: 9802; --     OUT    Timer
 000F: 9002; --     IN     Timer
-0010: 6FC9; --     ADDI   -55
+0010: 6F9C; --     ADDI   -100
 0011: 300F; --     JNEG   WaitingLoop
 0012: 8800; --     RETURN
 0013: 0000; -- Pattern:   DW 0

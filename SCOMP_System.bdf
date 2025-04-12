@@ -709,9 +709,9 @@ https://fpgasoftware.intel.com/eula.
 	)
 )
 (symbol
-	(rect 856 688 1064 848)
+	(rect 856 688 1064 880)
 	(text "LEDController" (rect 5 0 86 19)(font "Intel Clear" (font_size 8)))
-	(text "inst11" (rect 8 139 36 156)(font "Intel Clear" ))
+	(text "inst11" (rect 8 171 36 188)(font "Intel Clear" ))
 	(port
 		(pt 0 32)
 		(input)
@@ -762,6 +762,13 @@ https://fpgasoftware.intel.com/eula.
 		(line (pt 0 128)(pt 16 128))
 	)
 	(port
+		(pt 0 144)
+		(input)
+		(text "clock_100kHz1" (rect 0 0 92 19)(font "Intel Clear" (font_size 8)))
+		(text "clock_100kHz1" (rect 21 139 113 158)(font "Intel Clear" (font_size 8)))
+		(line (pt 0 144)(pt 16 144))
+	)
+	(port
 		(pt 208 32)
 		(output)
 		(text "LEDs[9..0]" (rect 0 0 60 19)(font "Intel Clear" (font_size 8)))
@@ -769,7 +776,7 @@ https://fpgasoftware.intel.com/eula.
 		(line (pt 208 32)(pt 192 32)(line_width 3))
 	)
 	(drawing
-		(rectangle (rect 16 16 192 144))
+		(rectangle (rect 16 16 192 176))
 	)
 )
 (connector
@@ -1111,13 +1118,23 @@ https://fpgasoftware.intel.com/eula.
 	(pt 776 816)
 	(pt 856 816)
 )
+(connector
+	(text "clock_100kHz" (rect 1018 40 1084 57)(font "Intel Clear" ))
+	(pt 1008 56)
+	(pt 1088 56)
+)
+(connector
+	(text "clock_100kHz" (rect 786 816 852 833)(font "Intel Clear" ))
+	(pt 776 832)
+	(pt 856 832)
+)
 (junction (pt 536 280))
 (text "The daughterboard test points." (rect 1264 832 1446 851)(font "Intel Clear" (font_size 8)))
 (text "Can be useful for testing using the oscilloscope." (rect 1264 856 1541 875)(font "Intel Clear" (font_size 8)))
 (title_block
 	(rect 1112 1264 1480 1384)
 	(section (rect 0 24 368 48)(text "COMPANY" (rect 2 0 57 12)(font "Arial" ))(text "GaTech DDL" (rect 56 2 170 20)(font "Arial" (font_size 12)))(border))
-	(section (rect 0 96 240 120)(text "DATE" (rect 2 0 30 12)(font "Arial" ))(text "Wed Apr 09 20:57:06 2025" (rect 56 3 238 19)(font "Arial" (font_size 10)))(date)(border))
+	(section (rect 0 96 240 120)(text "DATE" (rect 2 0 30 12)(font "Arial" ))(text "Sat Apr 12 12:56:08 2025" (rect 56 3 230 19)(font "Arial" (font_size 10)))(date)(border))
 	(section (rect 0 48 368 72)(text "DESIGNER" (rect 2 0 59 12)(font "Arial" ))(text "Kevin Johnson, Tom Collins" (rect 56 2 286 20)(font "Arial" (font_size 12)))(border))
 	(section (rect 0 72 280 96)(text "NUMBER" (rect 2 0 49 12)(font "Arial" ))(text "1.00" (rect 56 1 85 17)(font "Arial" (font_size 10)))(border))
 	(section (rect 310 96 368 120)(text "OF" (rect 10 0 25 12)(font "Arial" ))(text "1" (rect 34 4 42 20)(font "Arial" (font_size 10))))

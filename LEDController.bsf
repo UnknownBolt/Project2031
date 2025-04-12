@@ -21,9 +21,9 @@ https://fpgasoftware.intel.com/eula.
 */
 (header "symbol" (version "1.2"))
 (symbol
-	(rect 16 16 224 176)
+	(rect 16 16 224 208)
 	(text "LEDController" (rect 5 0 86 19)(font "Intel Clear" (font_size 8)))
-	(text "inst" (rect 8 139 24 156)(font "Intel Clear" ))
+	(text "inst" (rect 8 171 24 188)(font "Intel Clear" ))
 	(port
 		(pt 0 32)
 		(input)
@@ -74,6 +74,13 @@ https://fpgasoftware.intel.com/eula.
 		(line (pt 0 128)(pt 16 128))
 	)
 	(port
+		(pt 0 144)
+		(input)
+		(text "clock_100kHz1" (rect 0 0 92 19)(font "Intel Clear" (font_size 8)))
+		(text "clock_100kHz1" (rect 21 139 113 158)(font "Intel Clear" (font_size 8)))
+		(line (pt 0 144)(pt 16 144))
+	)
+	(port
 		(pt 208 32)
 		(output)
 		(text "LEDs[9..0]" (rect 0 0 60 19)(font "Intel Clear" (font_size 8)))
@@ -81,6 +88,6 @@ https://fpgasoftware.intel.com/eula.
 		(line (pt 208 32)(pt 192 32)(line_width 3))
 	)
 	(drawing
-		(rectangle (rect 16 16 192 144))
+		(rectangle (rect 16 16 192 176))
 	)
 )

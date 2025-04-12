@@ -23,6 +23,7 @@ PORT(
 	 clock_10Hz   : IN  STD_LOGIC;
     CS1         : OUT STD_LOGIC;
     LED_DATA    : OUT STD_LOGIC_VECTOR(5 DOWNTO 0)
+	
 );
 END LEDoi;
 
@@ -62,6 +63,8 @@ ARCHITECTURE a OF LEDoi IS
     SIGNAL cs1_reg : STD_LOGIC := '0';
     SIGNAL cs1_pulse : STD_LOGIC := '0';
     
+	  SIGNAL timer_duration : INTEGER RANGE 0 TO 63 := 63; -- Default to max (64 seconds)
+    SIGNAL timer_counter : INTEGER RANGE 0 TO 63 := 0;
     
     
 BEGIN
@@ -131,48 +134,76 @@ BEGIN
         END IF;
     END PROCESS;
     
-    -- Timer mode process (clocked by clock_1Hz) - handles automatic brightness changes
-    PROCESS(clock_1Hz, RESETN)
-    BEGIN
-        IF RESETN = '0' THEN
+-- Timer mode process (clocked by clock_1Hz) - handles automatic brightness changes
+PROCESS(clock_1Hz, RESETN)
+    TYPE t_led_state IS (RAMP_UP, HOLD_MAX, TRANSITION);
+    VARIABLE led_state : t_led_state := RAMP_UP;
+    VARIABLE transition_counter : INTEGER RANGE 0 TO 1 := 0;
+BEGIN
+    IF RESETN = '0' THEN
+        FOR i IN 0 TO 9 LOOP
+            brightness_regs(i) <= (OTHERS => '0');
+        END LOOP;
+        current_led <= 0;
+        state <= IDLE;
+        timer_mode_active <= '0';
+        timer_led_data <= (OTHERS => '0');
+        led_enable2 <= (OTHERS => '0');
+        led_state := RAMP_UP;
+        transition_counter := 0;
+    ELSIF RISING_EDGE(clock_1Hz) THEN
+        -- Detect CS2 pulse to start timer mode
+        IF cs2_sync = '1' AND state /= TIMER_MODE THEN
+            timer_mode_active <= '1';
+            current_led <= 0;
+            state <= TIMER_MODE;
+            led_state := RAMP_UP;
+            transition_counter := 0;
+            -- Initialize all brightness registers
             FOR i IN 0 TO 9 LOOP
                 brightness_regs(i) <= (OTHERS => '0');
             END LOOP;
-            current_led <= 0;
-            state <= IDLE;
-            timer_mode_active <= '0';
-            timer_led_data <= (OTHERS => '0');
-        ELSIF RISING_EDGE(clock_1Hz) THEN
-				
-            -- Detect CS2 pulse to start timer mode
-            IF cs2_sync = '1' THEN
-                timer_mode_active <= '1';
-                current_led <= 0;
-                state <= TIMER_MODE;
-					 
-            END IF;
-            
-            -- Timer mode operation
-            IF state = TIMER_MODE THEN
-                -- Increment brightness if not at max
-                IF brightness_regs(current_led) < "111111" THEN
-                    brightness_regs(current_led) <= brightness_regs(current_led) + 1;
-                    led_enable2(current_led) <= '1';
-                ELSE
-                    -- Move to next LED when at max brightness
+            led_enable2 <= (OTHERS => '0');
+            led_enable2(0) <= '1';  -- Enable first LED immediately
+        END IF;
+        
+        -- Timer mode operation
+        IF state = TIMER_MODE THEN
+            CASE led_state IS
+                WHEN RAMP_UP =>
+                    -- Increment brightness if not at max
+                    IF brightness_regs(current_led) < "111111" THEN
+                        brightness_regs(current_led) <= brightness_regs(current_led) + 1;
+                        timer_led_data <= brightness_regs(current_led) + 1;
+                    ELSE
+                        timer_led_data <= "111111"; -- Stay at max brightness
+                        led_state := HOLD_MAX;
+                    END IF;
+                    
+                WHEN HOLD_MAX =>
+                    -- Stay at max brightness for one cycle
+                    led_state := TRANSITION;
+                    
+                WHEN TRANSITION =>
+                    -- First, disable current LED and set brightness to 0
                     led_enable2(current_led) <= '0';
+                    timer_led_data <= "000000";
+                    
+                    -- Then move to next LED if available
                     IF current_led < 9 THEN
                         current_led <= current_led + 1;
+                        -- Initialize and enable new LED
+                        brightness_regs(current_led + 1) <= (OTHERS => '0');
+                        led_enable2(current_led + 1) <= '1';
+                        led_state := RAMP_UP;
                     ELSE
-                        current_led <= 0;  -- Wrap around
-                        timer_mode_active <= '0';  -- Stop after full cycle
+                        -- All LEDs completed, return to idle
+                        current_led <= 0;
+                        timer_mode_active <= '0';
                         state <= IDLE;
                     END IF;
-                END IF;
-                
-                -- Update timer LED data with current brightness
-                timer_led_data <= brightness_regs(current_led);
-            END IF;
+            END CASE;
         END IF;
-    END PROCESS;
+    END IF;
+END PROCESS;
 END a;

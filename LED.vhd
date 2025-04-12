@@ -74,8 +74,6 @@ BEGIN
                 brightness <= LED_DATA(5 DOWNTO 0);
             ELSIF (combined_cs = '1' AND WRITE_EN = '0') THEN
                 led0_enable <= led0_enable; -- Maintain current state
-            ELSE
-                led0_enable <= '0';
             END IF;
         END IF;
     END PROCESS;
