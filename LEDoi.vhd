@@ -52,6 +52,7 @@ ARCHITECTURE a OF LEDoi IS
     SIGNAL cs2_sync : STD_LOGIC := '0';
     SIGNAL cs2_prev : STD_LOGIC := '0';
     SIGNAL cs2_pulse : STD_LOGIC := '0';
+	   SIGNAL cs21_pulse : STD_LOGIC := '0';
     
     -- LED output register
     SIGNAL led_data_reg : STD_LOGIC_VECTOR(5 DOWNTO 0) := (OTHERS => '0');
@@ -117,10 +118,10 @@ BEGIN
         IF CONV_INTEGER(unsigned(T_numb)) < 63 AND CONV_INTEGER(unsigned(T_numb)) > 0 THEN
             T_sec <= CONV_INTEGER(unsigned(T_numb));
 				BrightStep <= 63/T_sec;
-		  ELSIF CONV_INTEGER(unsigned(T_numb)) = 0 THEN
+		  ELSIF CONV_INTEGER(unsigned(T_numb)) = 65535 THEN
 					BrightStep <= 0;
 		  Else
-				BrightStep <= 6;
+				BrightStep <= 63;
         END IF;
     END IF;
 END PROCESS;
@@ -147,13 +148,16 @@ END PROCESS;
         IF RESETN = '0' THEN
             led_enable1 <= (OTHERS => '0');
             led_data_reg <= (OTHERS => '0');
+				cs21_pulse <= '1';
         ELSIF RISING_EDGE(CS) THEN
             IF WRITE_EN = '1' THEN
                 -- Bits 9:0 control which LEDs are enabled
                 led_enable1 <= IO_DATA(9 DOWNTO 0);
-                
+                cs21_pulse <= '0';
                 -- Bits 15:10 set brightness for all LEDs
                 led_data_reg <= IO_DATA(15 DOWNTO 10);
+				Elsif CS = '0' THEN
+					cs21_pulse <= '1';
             END IF;
         END IF;
     END PROCESS;
@@ -180,12 +184,12 @@ BEGIN
 		  BrightStep2 := 6;
     ELSIF RISING_EDGE(clock_1Hz) THEN
         -- Detect CS2 pulse to start timer mode
-        IF cs2_sync = '1' AND state = Idle THEN
+        IF cs2_sync = '1' AND state = Idle AND cs21_pulse = '1' THEN
             timer_mode_active <= '1';
             current_led <= 0;
             state <= TIMER_MODE;
 				BrightStep2 := BrightStep;
-				IF BrightStep2 = 0 THEN
+				IF BrightStep2 = 0 or BrightStep = 0 THEN
 					led_state := Clear;
 				ELSE
 					led_state := RAMP_UP;
@@ -212,6 +216,8 @@ BEGIN
                             brightness_regs(current_led) <= "111111";
                             timer_led_data <= "111111";
                             led_state := HOLD_MAX;
+								Elsif BrightStep = 0 Then
+									led_state := Clear;
                         ELSE
                             -- No overflow, update brightness
                             brightness_regs(current_led) <= new_brightness(5 DOWNTO 0);
@@ -260,6 +266,14 @@ BEGIN
 					If cs2_pulse = '1' THEN	
 						state <= IDLE;
 					END IF;
+					If BrightStep = 0 Then
+					led_enable2 <= "1111111111";
+                timer_led_data <= "000000";
+					 current_led <= 0;
+                 timer_mode_active <= '0';
+                 state <= TIMER_END;
+               END IF;
+                    
 			
         END IF;
     END IF;
