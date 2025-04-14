@@ -45,7 +45,7 @@ ARCHITECTURE a OF LEDoi IS
     SIGNAL timer_mode_active : STD_LOGIC := '0';
     
     -- State for brightness update
-    TYPE state_type IS (IDLE, TIMER_MODE);
+    TYPE state_type IS (IDLE, TIMER_MODE, TIMER_END);
     SIGNAL state : state_type := IDLE;
     
     -- Synchronized signals for cross-clock domain
@@ -86,7 +86,7 @@ BEGIN
         END LOOP;
     END PROCESS;
 	  
-    PROCESS(clock_10Hz, RESETN)
+    PROCESS(CS2, RESETN)
     BEGIN
         IF RESETN = '0' THEN
             cs1_reg <= '0';
@@ -125,18 +125,19 @@ BEGIN
     END IF;
 END PROCESS;
     
-    PROCESS(clock_1Hz, RESETN)
+    PROCESS(CS2, RESETN)
     BEGIN
         IF RESETN = '0' THEN
             cs2_sync <= '0';
             cs2_prev <= '0';
-            cs2_pulse <= '0';
-        ELSIF RISING_EDGE(clock_10Hz) THEN
-				IF state = TIMER_MODE THEN
-					cs2_sync <= '0';
-				ELSIF CS2 = '1' THEN
-					cs2_sync <= '1';
+            cs2_pulse <= '1';
+        ELSIF RISING_EDGE(CS2) THEN
+            -- CS2 synchronization
+            cs2_sync <= '1';
+				IF cs2_sync <= '1' THEN
+               cs2_pulse <= NOT cs2_pulse;
 				END IF;
+
         END IF;
     END PROCESS;
     
@@ -179,7 +180,7 @@ BEGIN
 		  BrightStep2 := 6;
     ELSIF RISING_EDGE(clock_1Hz) THEN
         -- Detect CS2 pulse to start timer mode
-        IF cs2_sync = '1' AND state /= TIMER_MODE THEN
+        IF cs2_sync = '1' AND state = Idle THEN
             timer_mode_active <= '1';
             current_led <= 0;
             state <= TIMER_MODE;
@@ -242,7 +243,7 @@ BEGIN
                         -- All LEDs completed, return to idle
                         current_led <= 0;
                         timer_mode_active <= '0';
-                        state <= IDLE;
+                        state <= TIMER_END;
                     END IF;
 					WHEN Clear =>
                     -- First, disable current LED and set brightness to 0
@@ -253,8 +254,13 @@ BEGIN
                         -- All LEDs completed, return to idle
                     current_led <= 0;
                     timer_mode_active <= '0';
-                    state <= IDLE;
+                    state <= TIMER_END;
             END CASE;
+			ELSIF state = TIMER_END THEN
+					If cs2_pulse = '1' THEN	
+						state <= IDLE;
+					END IF;
+			
         END IF;
     END IF;
 END PROCESS;
