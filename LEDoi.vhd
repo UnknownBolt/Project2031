@@ -39,7 +39,7 @@ ARCHITECTURE a OF LEDoi IS
     SIGNAL brightness_regs : brightness_array := (OTHERS => (OTHERS => '0'));
     
     -- Current LED being controlled in timer mode
-    SIGNAL current_led : INTEGER RANGE 0 TO 9 := 0;
+    SIGNAL current_led : INTEGER RANGE 0 TO 10 := 0;
     
     -- Timer mode active flag
     SIGNAL timer_mode_active : STD_LOGIC := '0';
@@ -103,17 +103,18 @@ BEGIN
     END PROCESS;
     
     
-    PROCESS(CS2, RESETN)
+    PROCESS(clock_1Hz, RESETN)
     BEGIN
         IF RESETN = '0' THEN
             cs2_sync <= '0';
             cs2_prev <= '0';
             cs2_pulse <= '0';
-        ELSIF RISING_EDGE(CS2) THEN
-            -- CS2 synchronization
-            cs2_sync <= '1';
-            cs2_prev <= cs2_sync;
-            cs2_pulse <= cs2_sync AND NOT cs2_prev;
+        ELSIF RISING_EDGE(clock_10Hz) THEN
+				IF state = TIMER_MODE THEN
+					cs2_sync <= '0';
+				ELSIF CS2 = '1' THEN
+					cs2_sync <= '1';
+				END IF;
         END IF;
     END PROCESS;
     
